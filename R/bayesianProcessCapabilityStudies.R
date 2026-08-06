@@ -15,8 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-#'@importFrom jaspBase jaspDeps %setOrRetrieve%
-#'@importFrom rlang .data
+#'@importFrom jaspBase jaspDeps %setOrRetrieve% createJaspPlot createJaspState createJaspTable
 
 
 #'@export
@@ -235,7 +234,8 @@ bayesianProcessCapabilityStudies <- function(jaspResults, dataset, options) {
 
   rawfit <- jaspResults[[paste0(base, "State")]] %setOrRetrieve% (
     qc::bpc(
-      x, chains = 1, warmup = 1000, iter = 5000, silent = TRUE, seed = 1,
+      x, chains = options[["noChains"]], warmup = options[["noWarmup"]], iter = options[["noIterations"]],
+      silent = TRUE, seed = 1,
       target        = options[["targetValue"]],
       LSL           = options[["lowerSpecificationLimitValue"]],
       USL           = options[["upperSpecificationLimitValue"]],
@@ -297,7 +297,7 @@ bayesianProcessCapabilityStudies <- function(jaspResults, dataset, options) {
   return(selectedMetrics)
 }
 
-getCustomAxisLimits <- function(options, base) {
+.bpcsGetCustomAxisLimits <- function(options, base) {
   keys <- c(paste0(base, "custom_x_", c("min", "max")), paste0(base, "custom_y_", c("min", "max")))
   values <- lapply(keys, function(k) options[[k]])
   names(values) <- c("xmin", "xmax", "ymin", "ymax")
@@ -432,7 +432,7 @@ getCustomAxisLimits <- function(options, base) {
         bf_support         = options[[paste0(base, "IndividualCiBf")]],
         single_panel       = singlePanel,
         axes               = options[[paste0(base, "Axes")]],
-        axes_custom        = getCustomAxisLimits(options, base),
+        axes_custom        = .bpcsGetCustomAxisLimits(options, base),
         priorSummaryObject = priorSummaryObject
       ) +
         jaspGraphs::geom_rangeframe() +
@@ -514,7 +514,8 @@ getCustomAxisLimits <- function(options, base) {
                         position = position,
                         dependencies = jaspDeps(c(
                           .bpcsDefaultDeps(),
-                          .bpcsPlotLayoutDeps(base, hasPrior = FALSE)
+                          # mirrors the flags set on this plot's Common.PlotLayout in the qml
+                          .bpcsPlotLayoutDeps(base, hasPrior = FALSE, hasEstimate = FALSE, hasCi = FALSE, hasType = TRUE)
                         )))
   jaspResults[[base]] <- plt
 
@@ -591,7 +592,8 @@ getCustomAxisLimits <- function(options, base) {
     x_i <- x[1:nseq[i]]
     fit_i <- tryCatch(
       qc::bpc(
-        x_i, chains = 1, warmup = 1000, iter = 5000, silent = TRUE, seed = 1,
+        x_i, chains = options[["noChains"]], warmup = options[["noWarmup"]], iter = options[["noIterations"]],
+        silent = TRUE, seed = 1,
         target      = options[["targetValue"]],
         LSL         = options[["lowerSpecificationLimitValue"]],
         USL         = options[["upperSpecificationLimitValue"]],
@@ -644,7 +646,7 @@ getCustomAxisLimits <- function(options, base) {
   # this function should move to qc, and these are the arguments that should be passed to the arguments of that function
   single_panel <- options[[paste0(base, "PanelLayout")]] != "multiplePanels"
   axes         <- options[[paste0(base, "Axes")]]
-  axes_custom  <- getCustomAxisLimits(options, base)
+  axes_custom  <- .bpcsGetCustomAxisLimits(options, base)
 
   pointEstimateOption <- paste0(base, "IndividualPointEstimateType")
   pointEstimateName <- if (options[[pointEstimateOption]] == "mean") "mean" else "median"
@@ -900,18 +902,12 @@ getCustomAxisLimits <- function(options, base) {
 
   tryCatch({
     rawfit <- fit$rawfit
-    if (identical(rawfit$method, "integration")) {
-      if (inherits(rawfit$prior_resolved, "PriorConjugate")) {
-        # based on Murphy, K. P. (2007). Conjugate Bayesian analysis of the Gaussian distribution. def, 1(2σ2), 16.
-        # TODO: since we have access to the distribution we could avoid sampling and plot the density directly
-        prior <- rawfit$prior_resolved
-        state <- rawfit$integration_result$cached_state
-        post  <- qc:::.nig_posterior(prior, state$n, state$x_bar, state$sse)
-        df    <- 2 * post$alpha_n
-        scale <- sqrt(post$beta_n * (1 + 1 / post$k_n) / post$alpha_n)
-        predictiveSamples <- post$mu_n + scale * stats::rt(5000, df)
-      } else {
-        rawfit <- qc::bpc(
+    predictiveSamples <- tryCatch(
+      qc::extract_predictive_samples(rawfit),
+      # qc can only draw predictives from an integration fit when the prior is conjugate;
+      # for any other prior refit with mcmc so the plot can still be shown
+      error = function(e) {
+        mcmcfit <- qc::bpc(
           x            = if (ncol(dataset) > 0L) dataset[[1L]] else NULL,
           method       = "mcmc",
           distribution = rawfit$distribution %||% "normal",
@@ -919,18 +915,15 @@ getCustomAxisLimits <- function(options, base) {
           LSL          = options[["lowerSpecificationLimitValue"]],
           USL          = options[["upperSpecificationLimitValue"]],
           target       = options[["targetValue"]],
-          chains       = 1, warmup = 1000, iter = 5000, silent = TRUE, seed = 1,
+          chains       = options[["noChains"]],
+          warmup       = options[["noWarmup"]],
+          iter         = options[["noIterations"]],
+          silent       = TRUE, seed = 1,
           sample_priors = isPrior
         )
-        raw_samples       <- qc:::extract_samples(rawfit, bootstrap = FALSE)
-        samples           <- qc:::samples_to_mu_and_sigma(raw_samples)
-        predictiveSamples <- qc:::samples_to_posterior_predictives(samples)
+        qc::extract_predictive_samples(mcmcfit)
       }
-    } else {
-      raw_samples       <- qc:::extract_samples(rawfit, bootstrap = FALSE)
-      samples           <- qc:::samples_to_mu_and_sigma(raw_samples)
-      predictiveSamples <- qc:::samples_to_posterior_predictives(samples)
-    }
+    )
 
     plt <- jaspGraphs::jaspHistogram(
       predictiveSamples,

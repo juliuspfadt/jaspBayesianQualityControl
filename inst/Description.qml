@@ -3,64 +3,28 @@ import JASP.Module
 
 Description
 {
-	name		: "jaspModuleTemplate"
-	title		: qsTr("Jasp Module")
-	description	: qsTr("Examples for module builders")
-	version		: "0.1"
+	name		: "jaspBayesianQualityControl"
+	title		: qsTr("Bayesian Quality Control")
+	description	: qsTr("Bayesian analyses for investigating whether a manufactured product adheres to a defined set of quality criteria")
+	version		: "0.1.0"
 	author		: "JASP Team"
-	maintainer	: "JASP Team <info@jasp-stats.org>"
-	website		: "https://jasp-stats.org"
+	maintainer	: "JASP <info@jasp-stats.org>"
+	website		: "https://github.com/jasp-stats/jaspBayesianQualityControl"
 	license		: "GPL (>= 2)"
-	icon        : "exampleIcon.png" // Located in /inst/icons/
-	preloadData: true
-	requiresData: true
+	icon		: "qualityControl-module.svg"
+	hasWrappers	: false
+	preloadData	: false
 
 	GroupTitle
 	{
-		title:	qsTr("Basic interactivity")
+		title:			qsTr("Capability Analysis")
+		icon:			"qualityControl-capability.svg"
 	}
 
 	Analysis
 	{
-		title: qsTr("Using the interface") // Title for window
-		menu: qsTr("Using the interface")  // Title for ribbon
-		func: "interfaceExample"           // Function to be called
-		qml: "Interface.qml"               // Design input window
-		requiresData: false                // Allow to run even without data
-	}
-
-	Analysis
-	{
-	  title: qsTr("Loading data")
-	  menu: qsTr("Loading data")
-	  func: "processTable"
-	  qml: "LoadingData.qml"
-	}
-
-	GroupTitle
-	{
-		title:	qsTr("Basic functions")
-	}
-
-	Analysis
-	{
-	  title: qsTr("Add one")        // Title for window
-	  menu: qsTr("Add one")         // Title for ribbon
-	  func: "addOne"                // Function to be called
-    qml: "AddOne.qml"            // Design input window
-	  requiresData: false           // Allow to run even without data
-	}
-
-	GroupTitle
-	{
-	  title: qsTr("Plotting")
-	}
-
-	Analysis
-	{
-	  title: qsTr("Plot a parabola")
-	  func: "parabola"
-	  qml: "Parabola.qml"
-	  requiresData: false
+		title:			qsTr("Bayesian Process Capability Study")
+		func:			"bayesianProcessCapabilityStudies"
+		preloadData:	true
 	}
 }

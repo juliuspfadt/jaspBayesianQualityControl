@@ -1,19 +1,28 @@
-Package: jaspModuleTemplate
-Type: Package 
-Title: A module for JASP
-Version: 0.1.2
-Date: 2020-10-15
+Package: jaspBayesianQualityControl
+Type: Package
+Title: Bayesian Quality Control Module for JASP
+Version: 0.1.0
+Date: 2026-08-06
 Author: JASP Team
-Website: jasp-stats.org
-Maintainer: JASP Team <info@jasp-stats.org>
-Description: Example module showing basic functionality. Use it for inspiration when creating your own module.
+Website: https://github.com/jasp-stats/jaspBayesianQualityControl
+Maintainer: JASP <info@jasp-stats.org>
+Description: Bayesian counterparts to the quality control analyses, covering process capability and measurement systems analysis.
 License: GPL (>= 2)
 Encoding: UTF-8
 Imports:
+  BayesTools,
+  ggh4x,
+  ggplot2,
+  HDInterval,
   jaspBase,
-  jaspGraphs
+  jaspGraphs,
+  qc,
+  tibble
 Suggests:
   testthat
 Remotes:
   jasp-stats/jaspBase,
-  jasp-stats/jaspGraphs
+  jasp-stats/jaspGraphs,
+  FBartos/qc
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3

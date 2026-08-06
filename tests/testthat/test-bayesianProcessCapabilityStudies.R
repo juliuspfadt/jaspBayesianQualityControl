@@ -138,6 +138,36 @@ test_that("Distribution and predictive plots are produced without error", {
   expect_length(results[["state"]][["figures"]], 4)
 })
 
+## Sequential analysis ####
+
+test_that("Sequential analysis plots are produced without error", {
+  # slow, the sequential analysis refits once per observation
+  options <- .bpcsOptions()
+  options$sequentialAnalysisPointEstimatePlot <- TRUE
+  options$sequentialAnalysisPointIntervalPlot <- TRUE
+  set.seed(1)
+  results <- runAnalysis("bayesianProcessCapabilityStudies", "datasets/processCapability.csv", options)
+
+  expect_equal(results[["status"]], "complete")
+  expect_true(!is.null(results[["results"]][["sequentialAnalysisPointEstimatePlot"]][["data"]]))
+  expect_true(!is.null(results[["results"]][["sequentialAnalysisPointIntervalPlot"]][["data"]]))
+  expect_length(results[["state"]][["figures"]], 2)
+})
+
+test_that("Posterior updating table option is not implemented yet", {
+  # the qml ships a "Posterior updating table" checkbox (marked TODO) with no R
+  # implementation, so ticking it adds nothing. Guards against the option being
+  # quietly forgotten: delete this test when the table is implemented.
+  options <- .bpcsOptions()
+  options$sequentialAnalysisPointEstimatePlot <- TRUE
+  options$sequentialAnalysisUpdatingTable     <- TRUE
+  set.seed(1)
+  results <- runAnalysis("bayesianProcessCapabilityStudies", "datasets/processCapability.csv", options)
+
+  expect_equal(results[["status"]], "complete")
+  expect_false("sequentialAnalysisUpdatingTable" %in% names(results[["results"]]))
+})
+
 ## Interval table ####
 
 test_that("Interval table is produced without error", {

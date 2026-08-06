@@ -291,7 +291,8 @@ bayesianProcessCapabilityStudies <- function(jaspResults, dataset, options) {
 }
 
 .bpcsGetSelectedMetrics <- function(options) {
-  allMetrics <- c("Cp", "CpU", "CpL", "Cpk", "Cpc", "Cpm")
+  # casing must match the metric names qc uses, it errors on CpU / CpL
+  allMetrics <- c("Cp", "Cpu", "Cpl", "Cpk", "Cpc", "Cpm")
   selectedMetrics <- allMetrics[c(options[["Cp"]],   options[["Cpu"]],  options[["Cpl"]],
                                   options[["Cpk"]],  options[["Cpc"]],  options[["Cpm"]])]
   return(selectedMetrics)

@@ -59,3 +59,8 @@ Thumbs.db
 .Rproj.user
 
 _processedLockFile.lock
+
+# AI agent config (machine-specific, not committed)
+.mcp.json
+.claude/settings.local.json
+.vscode/

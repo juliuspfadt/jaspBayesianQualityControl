@@ -3,3 +3,8 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^\.travis\.yml$
+^\.claude$
+^\.codex$
+^\.agents$
+^\.mcp\.json$
+^AGENTS\.md$

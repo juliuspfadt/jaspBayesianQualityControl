@@ -358,7 +358,7 @@ Form
 
 	Section
 	{
-		title: qsTr("Prior distributions")
+		title: qsTr("Prior Distributions")
 
 		// TODO: this dropdown should just show the same GUI as the custom one
 		// but disable e.g., the DropDown itself and instead show the prior
@@ -425,7 +425,7 @@ Form
 
 	Section
 	{
-		title: qsTr("Advanced options")
+		title: qsTr("Advanced Options")
 
 		Group
 		{

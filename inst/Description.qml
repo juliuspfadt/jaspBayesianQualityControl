@@ -24,6 +24,7 @@ Description
 	Analysis
 	{
 		title:			qsTr("Bayesian Process Capability Study")
+		qml:			"BayesianProcessCapabilityStudies.qml"
 		func:			"bayesianProcessCapabilityStudies"
 		preloadData:	true
 	}

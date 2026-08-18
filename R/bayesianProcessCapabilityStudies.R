@@ -22,7 +22,9 @@
 bayesianProcessCapabilityStudies <- function(jaspResults, dataset, options) {
 
   fit <- .bpcsCapabilityTable(jaspResults, dataset, options, position = 1)
-  priorFit <- .bpcsSamplePosteriorOrPrior(jaspResults, dataset, options, prior = TRUE)
+  # drawing prior samples is pointless until the spec limits are set, and every
+  # consumer of priorFit already handles NULL
+  priorFit <- if (.bpcsIsReady(options)) .bpcsSamplePosteriorOrPrior(jaspResults, dataset, options, prior = TRUE) else NULL
 
   .bpcsCapabilityPlot(jaspResults, options, fit, priorFit, position = 2)
   .bpcsCapabilityPlot(jaspResults, options, fit, priorFit, position = 3, base = "priorDistributionPlot")

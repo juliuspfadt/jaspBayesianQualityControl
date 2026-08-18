@@ -135,6 +135,7 @@ Form
 				label: 						qsTr("Lower specification limit")
 				id:							lowerSpecificationLimit
 				childrenOnSameRow:			true
+				enableChildrenOnChecked:	false
 
 				DoubleField
 				{
@@ -153,6 +154,7 @@ Form
 				label: 						qsTr("Target value")
 				id:							target
 				childrenOnSameRow:			true
+				enableChildrenOnChecked:	false
 
 				DoubleField
 				{
@@ -170,6 +172,7 @@ Form
 				label: 						qsTr("Upper specification limit")
 				id:							upperSpecificationLimit
 				childrenOnSameRow:			true
+				enableChildrenOnChecked:	false
 
 				DoubleField
 				{

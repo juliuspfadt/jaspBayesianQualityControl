@@ -390,9 +390,11 @@ bayesianProcessCapabilityStudies <- function(jaspResults, dataset, options) {
   # only if the user asked for it
   priorSummaryObject <- if (isPost && options[[paste0(base, "PriorDistribution")]]) priorFit$summaryObject else NULL
 
+  plotWidth <- 400 * (if (singlePanel) 1 else 3)
+
   jaspPlt <- createJaspPlot(
     title = if (isPost) gettext("Posterior Distribution") else gettext("Prior Distribution"),
-    width  = 400 * (if (singlePanel) 1 else 3),
+    width  = plotWidth,
     height = 400 * (if (singlePanel) 1 else 2),
     position = position,
     dependencies = jaspDeps(
@@ -424,19 +426,32 @@ bayesianProcessCapabilityStudies <- function(jaspResults, dataset, options) {
       NULL
     } else {
 
+      # qc draws the point estimate / ci annotation with ggtext::geom_richtext(size = ...),
+      # whose size is in mm and defaults to 18 (~51pt), swamping the panel. Scale it to the
+      # width one panel actually gets instead: facet_wrap spreads the metrics over
+      # ceiling(sqrt(n)) columns of plotWidth, and 3mm is the largest that keeps the longest
+      # label ("Mean = x.xxx; xx.x% CI [x.xxx, x.xxx]") inside a 400px panel. Never grow past
+      # the standard jasp font size.
+      nColumns       <- if (singlePanel) 1L else ceiling(sqrt(length(selectedMetrics)))
+      panelWidth     <- plotWidth / nColumns
+      annotationSize <- min(3 * panelWidth / 400, jaspGraphs::graphOptions("fontsize") / ggplot2::.pt)
+
       jaspPlt$plotObject <- qc::plot_density(
         summaryObject,
         what = selectedMetrics,
         point_estimate     = if (options[[paste0(base, "IndividualPointEstimate")]]) options[[paste0(base, "IndividualPointEstimateType")]] else "none",
         ci                 = if (options[[paste0(base, "IndividualCi")]])            options[[paste0(base, "IndividualCiType")]]            else "none",
-        ci_level           = options[[paste0(base, "IndividualCiMass")]],
+        # IndividualCiMass is a 1-100 percentage (see Common/PlotLayout.qml's CIField overrides),
+        # but qc::plot_density's ci_level wants a 0-1 proportion and errors above 1.
+        ci_level           = options[[paste0(base, "IndividualCiMass")]] / 100,
         ci_custom_left     = options[[paste0(base, "IndividualCiLower")]],
         ci_custom_right    = options[[paste0(base, "IndividualCiUpper")]],
         bf_support         = options[[paste0(base, "IndividualCiBf")]],
         single_panel       = singlePanel,
         axes               = options[[paste0(base, "Axes")]],
         axes_custom        = .bpcsGetCustomAxisLimits(options, base),
-        priorSummaryObject = priorSummaryObject
+        priorSummaryObject = priorSummaryObject,
+        textsize           = annotationSize
       ) +
         jaspGraphs::geom_rangeframe() +
         jaspGraphs::themeJaspRaw()
